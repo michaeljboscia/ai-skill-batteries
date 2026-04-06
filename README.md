@@ -154,4 +154,4 @@ MIT
 
 Michael Boscia ([@michaeljboscia](https://github.com/michaeljboscia))
 
-Built with Claude Code, pressure-tested against real production systems.
+Built with [Claude Code](https://claude.ai/code). Each skill package is pressure-tested with independent compliance evaluators before release.
