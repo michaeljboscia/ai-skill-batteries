@@ -6,28 +6,28 @@
 Every GCP resource MUST have labels applied at creation time. No exceptions. Labels flow to billing export and are the only way to attribute costs to projects/tasks.
 
 **Required labels (ALL resources — VMs, BQ jobs, GCS buckets, disks):**
-- `project` — which project this serves (e.g., `gtm-machine`, `tellus`, `conversation-intel`, `pythia`)
-- `task` — what work this is doing (e.g., `v70-inference`, `batch-engine`, `crux-pull`, `pain-sensor`)
+- `project` — which project this serves (e.g., `backend-api`, `data-pipeline`, `ml-training`)
+- `task` — what work this is doing (e.g., `inference`, `batch-etl`, `api-scrape`, `monitoring`)
 
 **Optional labels:**
-- `owner` — who launched it (e.g., `mike`, `claude`, `gemini`)
+- `owner` — who launched it (e.g., `team-backend`, `ci-pipeline`, `deploy-bot`)
 - `ttl` — expected lifetime (e.g., `4h`, `1d`, `persistent`)
 
 **Compute Engine:**
 ```bash
 gcloud compute instances create my-vm \
-  --labels=project=gtm-machine,task=v70-inference,owner=claude,ttl=4h
+  --labels=project=backend-api,task=batch-etl,owner=ci-pipeline,ttl=4h
 ```
 
 **BigQuery jobs:**
 ```bash
-bq query --label=project:crux --label=task:pain-sensor \
+bq query --label=project:analytics --label=task:daily-export \
   --use_legacy_sql=false 'SELECT ...'
 ```
 
 **Python BigQuery client:**
 ```python
-job_config = bigquery.QueryJobConfig(labels={"project": "gtm-machine", "task": "crux-pull"})
+job_config = bigquery.QueryJobConfig(labels={"project": "data-pipeline", "task": "daily-export"})
 client.query(query, job_config=job_config)
 ```
 
@@ -110,7 +110,7 @@ curl -s -H "Authorization: Bearer $(gcloud auth print-access-token)" \
 Before provisioning any GPU VM or running any Packer build, check whether a golden image already exists for the workload.
 
 ```bash
-gcloud compute images list --project=aerial-jigsaw-467620-m8 --filter="name~gpu-golden" --format="table(name,status)"
+gcloud compute images list --project=<your-project-id> --filter="name~gpu-golden" --format="table(name,status)"
 ```
 
 Full specs and launch commands: see your project's golden image reference docs.
@@ -243,7 +243,7 @@ Never hardcode VPC names or assume network topology across GCP projects.
 - Code reused from other projects MUST have network params updated
 
 **You will be tempted to:** "Just reuse the launch script from the last project."
-**Why that fails:** On 2026-03-13, VMs launched into `psi-fleet-vpc` from an old project instead of the target's default network. Deployment failed until the network parameter was manually corrected.
+**Why that fails:** On 2026-03-13, VMs launched into `prod-vpc` from an old project instead of the target's default network. Deployment failed until the network parameter was manually corrected.
 
 ### Rule 11: IAP Tunneling Requires Both Firewall AND IAM
 IAP SSH tunneling (`use_iap = true` in Packer, `--tunnel-through-iap` in gcloud) has two independent requirements. Missing either one causes silent hangs with no error message.
@@ -256,7 +256,7 @@ IAP SSH tunneling (`use_iap = true` in Packer, `--tunnel-through-iap` in gcloud)
 3. **Cloud NAT** on the VPC subnet — without it, `omit_external_ip = true` VMs can't reach package repos, GHCR, or HuggingFace
 
 **You will be tempted to:** "The firewall rule exists and allows the IAP range, so IAP should work."
-**Why that fails:** On 2026-03-24, Packer builds hung indefinitely at `Step Launch IAP Tunnel...` for 2+ hours, stranding GPU builder VMs. The `allow-iap-ssh-benchmark` firewall rule was correct, but no user had `roles/iap.tunnelResourceAccessor`. The IAP API silently refused to create the tunnel — no error, no timeout, just a hang.
+**Why that fails:** On 2026-03-24, Packer builds hung indefinitely at `Step Launch IAP Tunnel...` for 2+ hours, stranding GPU builder VMs. The `allow-iap-ssh` firewall rule was correct, but no user had `roles/iap.tunnelResourceAccessor`. The IAP API silently refused to create the tunnel — no error, no timeout, just a hang.
 
 **The right way (verify before any IAP operation):**
 ```bash

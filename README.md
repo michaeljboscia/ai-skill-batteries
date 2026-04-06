@@ -46,6 +46,21 @@ meta/             3 skills — reality-check, silent-bypass, signal-grounded-ema
 skill-forge/      The factory — build your own skill packages with /skill-forge
 ```
 
+## Quick Start
+
+```bash
+# Clone and install everything
+git clone https://github.com/michaeljboscia/ai-skill-batteries.git
+cd ai-skill-batteries
+./install.sh
+
+# Or install just one package
+./install.sh python
+
+# Skills auto-load in Claude Code based on what you're working on.
+# No manual invocation needed.
+```
+
 ## Installation
 
 ### Install everything
@@ -73,6 +88,8 @@ cp -r languages/python/mx-py-core ~/.claude/skills/
 ```
 
 Claude Code automatically discovers skills in `~/.claude/skills/` and loads them based on the `description` field in each `SKILL.md` frontmatter.
+
+To remove skills, delete the corresponding directory from `~/.claude/skills/`. To update, re-run `./install.sh` -- it overwrites existing files.
 
 ### Cursor
 

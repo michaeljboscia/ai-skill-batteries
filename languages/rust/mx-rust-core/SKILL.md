@@ -233,6 +233,22 @@ Rules:
 
 ---
 
+## Performance: Make It Fast
+
+- **Clone-then-profile:** Start with `.clone()` to get code compiling, then use `cargo flamegraph` or `perf` to identify hot clones. Replace only the ones that show up in profiles -- most `.clone()` calls are noise-level cost.
+- **Prefer `&str` over `String` in function parameters:** Accept `&str` for read-only access -- avoids heap allocation at every call site. Return `String` only when the function creates new data.
+- **Use `#[inline]` sparingly:** The compiler inlines small functions automatically. Only add `#[inline]` on cross-crate hot-path functions where benchmarks show it matters.
+- **Avoid `Arc<Mutex<T>>` in hot loops:** Atomic operations and mutex contention in tight loops can consume 50-80% of CPU time. Use channels or restructure data ownership instead.
+
+## Observability: Know It's Working
+
+- **`tracing` crate is mandatory:** Every Rust project uses `tracing` for structured, span-based instrumentation. Initialize a subscriber in `main()` before any business logic runs.
+- **Use `#[instrument]` on public async functions:** Auto-creates spans with function name and arguments. Use `skip(sensitive_arg)` to exclude secrets.
+- **Structured fields, not string formatting:** Use `info!(user_id = %id, "created user")` not `info!("created user {}", id)`. Structured fields are filterable and searchable.
+- **Span names must be low cardinality:** `"create_user"` is good, `"create_user_alice"` is bad. High-cardinality data goes in span attributes.
+
+---
+
 ## Enforcement: Anti-Rationalization Rules
 
 ### Rule 1: No Arc<Mutex<T>> to Fix Borrow Errors

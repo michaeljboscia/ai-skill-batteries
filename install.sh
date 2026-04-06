@@ -8,9 +8,26 @@ set -euo pipefail
 #   ./install.sh              # Install all skills
 #   ./install.sh python       # Install only Python skills
 #   ./install.sh aws gcp      # Install AWS + GCP skills
+#   ./install.sh --help       # Show usage
 
 SKILLS_DIR="${HOME}/.claude/skills"
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
+    echo "AI Skill Batteries — Installer"
+    echo ""
+    echo "Usage:"
+    echo "  ./install.sh              Install all skills"
+    echo "  ./install.sh python       Install only Python skills"
+    echo "  ./install.sh aws gcp      Install AWS + GCP skills"
+    echo "  ./install.sh skill-forge  Install the skill-forge factory"
+    echo ""
+    echo "Available packages:"
+    find "$REPO_DIR"/{cloud,languages,frameworks,platforms,meta} -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+        | xargs -I{} basename {} | sort -u | sed 's/^/  /'
+    echo "  skill-forge"
+    exit 0
+fi
 
 mkdir -p "$SKILLS_DIR"
 
@@ -20,7 +37,7 @@ install_skill() {
     name=$(basename "$src")
     if [ -f "$src/SKILL.md" ]; then
         mkdir -p "$SKILLS_DIR/$name"
-        cp -r "$src"/* "$SKILLS_DIR/$name/"
+        cp -r "$src/." "$SKILLS_DIR/$name/"
         echo "  Installed: $name"
     fi
 }
@@ -51,15 +68,15 @@ if [ $# -gt 0 ]; then
         # Check for skill-forge specifically
         if [ "$package" = "skill-forge" ] && [ -d "$REPO_DIR/skill-forge" ]; then
             mkdir -p "$SKILLS_DIR/skill-forge"
-            cp -r "$REPO_DIR/skill-forge"/* "$SKILLS_DIR/skill-forge/"
+            cp -r "$REPO_DIR/skill-forge/." "$SKILLS_DIR/skill-forge/"
             echo "  Installed: skill-forge (enables /skill-forge slash command)"
             found=true
         fi
         if [ "$found" = false ]; then
             echo "  Package '$package' not found. Available:"
-            for category in cloud languages frameworks platforms meta; do
-                ls -d "$REPO_DIR/$category"/*/ 2>/dev/null | xargs -I{} basename {} | sed 's/^/    /'
-            done
+            find "$REPO_DIR"/{cloud,languages,frameworks,platforms,meta} -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+                | xargs -I{} basename {} | sort -u | sed 's/^/    /'
+            echo "    skill-forge"
             exit 1
         fi
     done
@@ -96,11 +113,14 @@ install_category "$REPO_DIR/meta"
 echo "Skill Forge:"
 if [ -d "$REPO_DIR/skill-forge" ] && [ -f "$REPO_DIR/skill-forge/SKILL.md" ]; then
     mkdir -p "$SKILLS_DIR/skill-forge"
-    cp -r "$REPO_DIR/skill-forge"/* "$SKILLS_DIR/skill-forge/"
+    cp -r "$REPO_DIR/skill-forge/." "$SKILLS_DIR/skill-forge/"
     echo "  Installed: skill-forge (enables /skill-forge slash command)"
 fi
 
 echo ""
 total=$(find "$REPO_DIR" -name "SKILL.md" | wc -l | tr -d ' ')
-installed=$(ls -d "$SKILLS_DIR"/mx-*/SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+installed_skills=$(ls -d "$SKILLS_DIR"/mx-*/SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+installed_forge=0
+[ -f "$SKILLS_DIR/skill-forge/SKILL.md" ] && installed_forge=1
+installed=$((installed_skills + installed_forge))
 echo "Done. $total skills available, $installed installed in $SKILLS_DIR"

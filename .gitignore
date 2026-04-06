@@ -4,3 +4,10 @@
 *~
 .env
 .env.*
+.idea/
+.vscode/
+*.log
+.pytest_cache/
+__pycache__/
+node_modules/
+*.pyc

@@ -383,7 +383,7 @@ Write `COMPLIANCE_REPORT.md` to the pressure-tests directory with:
 ## Naming Convention
 
 - Skill directory: `mx-{topic}-{mode}` (e.g., `mx-nextjs-routing`, `mx-go-concurrency`)
-- The `mx-` prefix = "MikeX" — your custom skills namespace
+- The `mx-` prefix is a namespace convention to avoid collisions with other skills. Pick your own prefix (e.g., `mx-`, `acme-`, `co-`) and use it consistently across your packages
 - Keep mode names to one word when possible
 
 ---
