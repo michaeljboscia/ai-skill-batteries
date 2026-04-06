@@ -146,6 +146,10 @@ It walks through 6 phases: scope definition, existing work discovery, quicksearc
 3. **Verification built-in** — every skill includes observability and performance sections with specific things to measure.
 4. **Co-loading** — performance and observability skills auto-load alongside their domain skill. You can't write React code without the perf skill also being active.
 
+## Attribution
+
+See [ATTRIBUTION.md](ATTRIBUTION.md) for the full list of sources, repositories, documentation, and tools that informed these skills.
+
 ## License
 
 MIT
